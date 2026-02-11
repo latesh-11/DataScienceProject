@@ -1,7 +1,7 @@
 from src.datascience.constants import *
 from src.datascience.utils.common import read_yaml, create_directories
-from src.datascience.entity.config_entity import (DataIngestionConfig,DataValidationConfig)
-
+from src.datascience.entity.config_entity import (DataIngestionConfig, DataTransformationConfig,
+    DataTransformationConfig, DataValidationConfig, ModelEvaluationConfig, ModelTrainingConfig)
 
 class ConfigurationManager:
     def __init__ (self,
@@ -43,4 +43,53 @@ class ConfigurationManager:
             all_schema = self.schema.COLUMNS,
             STATUS_FILE= config.STATUS_FILE
         )
-        return data_validation_config
+        return data_validation_config   
+    
+    def get_data_transformation_config(self) -> DataTransformationConfig:
+        config = self.config.data_transformation
+
+        create_directories([config.root_dir])
+
+        data_transformation_config = DataTransformationConfig(
+            root_dir = config.root_dir,
+            data_path= config.data_path
+        )
+
+        return data_transformation_config
+
+    def get_model_train_config(self) -> ModelTrainingConfig:
+        config = self.config.model_training
+        schema = self.schema.TARGET_COLUMN
+        params = self.params.ElasticNet
+
+        create_directories([config.root_dir])
+
+        model_training_config = ModelTrainingConfig(
+            root_dir=  config.root_dir,
+            train_data_path= config.train_data_path,
+            test_data_path= config.test_data_path,
+            model_name= config.model_name,
+            alpha = params.alpha,
+            l1_ratio = params.l1_ratio,
+            target_column=schema.name
+        )
+        return model_training_config
+    
+    def get_model_evaluation_config(self) -> ModelEvaluationConfig:
+        config = self.config.model_evaluation
+        schema = self.schema.TARGET_COLUMN
+        params = self.params.ElasticNet
+
+        create_directories([config.root_dir])
+
+        model_evaluation_config = ModelEvaluationConfig(
+            root_dir = config.root_dir,
+            test_data_path = config.test_data_path,
+            model_path = config.model_path,
+            all_params=params,
+            metric_file_name=config.metric_file_name,
+            target_column = schema.name,
+            mlflow_uri="https://dagshub.com/sharmalatesh125/DataScienceProject.mlflow/"
+        )
+
+        return model_evaluation_config
